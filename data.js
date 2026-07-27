@@ -33,6 +33,7 @@ const ITEMS = [
 // ===== Lớp nền tảng =====
 {code:"LNT-H01", class:"Lớp nền tảng", type:"Phrasal Verb", format:"html", title:"Phrasal Verbs – Bài 1", link:"https://phamnhu021200-bot.github.io/quiz-lopnentang-phrasalverb-bai1/"},
 {code:"LNT-H02", class:"Lớp nền tảng", type:"Grammar", format:"html", title:"Question Word + To-infinitive – 100 câu", link:"https://phamnhu021200-bot.github.io/quiz-lopnentang-questionword-toinfinitive/"},
+{code:"LNT-D01", class:"Lớp nền tảng", type:"Word Form", format:"docx", title:"Unit 1 – Test Word Form số 2 (3 phần: từ loại, MCQ, điền dạng từ)", link:"https://drive.google.com/file/d/1ik4JfzayDmR0UnIcBiKfFwO7U2Rej4pr/view"},
 
 // ===== IELTS =====
 {code:"IE-H01", class:"IELTS", type:"Vocabulary", format:"html", title:"Từ vựng IELTS – Bộ 1", link:"https://phamnhu021200-bot.github.io/tu-vung-ielts-1/", note:"Có bản cập nhật IE-H02, nên kiểm tra bản nào mới hơn"},
@@ -52,3 +53,4 @@ const ITEMS = [
 {code:"KH-H11", class:"Chưa phân loại", type:"Grammar", format:"html", title:"4 thì cơ bản", link:"https://phamnhu021200-bot.github.io/quiz-4thi/"},
 {code:"KH-H12", class:"Chưa phân loại", type:"Khác", format:"html", title:"test-1 (chưa rõ nội dung)", link:"https://phamnhu021200-bot.github.io/test-1/", note:"Không rõ mục đích — nên kiểm tra, xoá nếu không dùng"},
 ];
+

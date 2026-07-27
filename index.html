@@ -54,6 +54,28 @@
   .note{margin-top:8px;font-size:11.5px;color:#9a6b1f;background:#fbf1dc;border-radius:5px;padding:6px 8px;line-height:1.5;}
   .empty{color:var(--ink-soft);font-size:14px;padding:30px 0;text-align:center;}
 
+  .badge.edited{background:#dcece7;color:#1f6358;}
+  .card-actions{margin-top:10px;display:flex;gap:10px;align-items:center;}
+  .edit-btn{background:none;border:none;padding:0;font-size:11.5px;color:var(--ink-soft);cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;}
+  .edit-btn:hover{color:var(--gold);}
+  .reset-btn{background:none;border:none;padding:0;font-size:11.5px;color:#9a6b1f;cursor:pointer;text-decoration:underline;font-family:'Inter',sans-serif;}
+  .edit-panel{margin-top:10px;padding:10px;background:#fff;border:1px dashed var(--line);border-radius:6px;display:none;}
+  .edit-panel.open{display:block;}
+  .edit-panel label{display:block;font-size:11px;color:var(--ink-soft);margin:6px 0 3px;}
+  .edit-panel select,.edit-panel input{width:100%;font-size:12.5px;padding:6px 8px;border:1px solid var(--line);border-radius:5px;font-family:'Inter',sans-serif;}
+  .edit-panel .row{display:flex;gap:8px;margin-top:10px;}
+  .edit-panel button{font-size:12px;font-weight:600;padding:6px 12px;border-radius:5px;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
+  .edit-panel .save{background:var(--teal);color:#fff;}
+  .edit-panel .cancel{background:var(--slate-bg);color:var(--slate);}
+
+  .export-bar{max-width:1080px;margin:0 auto;padding:0 24px;display:flex;justify-content:flex-end;}
+  .export-btn{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--teal);background:var(--teal-bg);border:1px solid var(--teal);border-radius:6px;padding:8px 14px;cursor:pointer;margin:14px 0 -6px;}
+  .export-btn:hover{opacity:.85;}
+  .export-panel{display:none;max-width:1080px;margin:14px auto 0;padding:0 24px;}
+  .export-panel.open{display:block;}
+  .export-panel textarea{width:100%;min-height:140px;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);}
+  .export-hint{font-size:12px;color:var(--ink-soft);margin:6px 0 0;line-height:1.6;}
+
   footer{max-width:1080px;margin:0 auto;padding:0 24px 50px;color:var(--ink-soft);font-size:12.5px;line-height:1.7;}
   footer h4{font-family:'Fraunces',serif;font-size:14.5px;color:var(--ink);margin:0 0 6px;}
 </style>
@@ -78,6 +100,14 @@
   </div>
 </div>
 
+<div class="export-bar">
+  <button class="export-btn" id="exportBtn">📤 Xuất các thay đổi phân loại</button>
+</div>
+<div class="export-panel" id="exportPanel">
+  <textarea id="exportText" readonly></textarea>
+  <p class="export-hint">Copy đoạn trên và dán vào chat với Claude ("cập nhật phân loại theo đoạn này") để lưu vĩnh viễn vào trang — vì thay đổi bấm ở đây chỉ lưu trên trình duyệt hiện tại của bạn.</p>
+</div>
+
 <main id="main"></main>
 
 <footer>
@@ -92,29 +122,58 @@
 
 <script src="data.js"></script>
 <script>
+const OVR_KEY = 'gs_hoc_lieu_overrides_v1';
+function loadOverrides(){ try{ return JSON.parse(localStorage.getItem(OVR_KEY)) || {}; }catch(e){ return {}; } }
+function saveOverrides(o){ localStorage.setItem(OVR_KEY, JSON.stringify(o)); }
+let overrides = loadOverrides();
+
+function effectiveItems(){
+  return ITEMS.map(i=>{
+    const ov = overrides[i.code];
+    return ov ? {...i, class: ov.class || i.class, type: ov.type || i.type, _edited:true} : {...i, _edited:false};
+  });
+}
+
 const classOrder = ["GS9","GS6","Lớp 5","Lớp nền tảng","IELTS","Chưa phân loại"];
-const typeSet = [...new Set(ITEMS.map(i=>i.type))].sort();
 const fClass = document.getElementById('fClass');
 const fType = document.getElementById('fType');
 const fFormat = document.getElementById('fFormat');
 const fSearch = document.getElementById('fSearch');
 const fCount = document.getElementById('fCount');
+const exportBtn = document.getElementById('exportBtn');
+const exportPanel = document.getElementById('exportPanel');
+const exportText = document.getElementById('exportText');
 
-classOrder.forEach(c=>{ if(ITEMS.some(i=>i.class===c)){ const o=document.createElement('option'); o.value=c; o.textContent=c; fClass.appendChild(o); } });
-typeSet.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; fType.appendChild(o); });
+function allClasses(){ return [...new Set(effectiveItems().map(i=>i.class))]; }
+function allTypes(){ return [...new Set(effectiveItems().map(i=>i.type))].sort(); }
+
+function rebuildFilterOptions(){
+  const curClass = fClass.value, curType = fType.value;
+  fClass.innerHTML = '<option value="">Tất cả lớp</option>';
+  const classes = allClasses();
+  classOrder.filter(c=>classes.includes(c)).forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; fClass.appendChild(o); });
+  classes.filter(c=>!classOrder.includes(c)).forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; fClass.appendChild(o); });
+  fType.innerHTML = '<option value="">Tất cả loại bài</option>';
+  allTypes().forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; fType.appendChild(o); });
+  if([...fClass.options].some(o=>o.value===curClass)) fClass.value = curClass;
+  if([...fType.options].some(o=>o.value===curType)) fType.value = curType;
+}
 ['html','docx'].forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent = f==='html' ? 'Bài test HTML' : 'File Word'; fFormat.appendChild(o); });
 
 function formatLabel(f){ return f==='html' ? 'HTML tương tác' : 'Word (.docx)'; }
+function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
 
 function render(){
+  rebuildFilterOptions();
+  const items = effectiveItems();
   const cVal = fClass.value, tVal = fType.value, fVal = fFormat.value, sVal = fSearch.value.trim().toLowerCase();
-  const filtered = ITEMS.filter(i=>
+  const filtered = items.filter(i=>
     (!cVal || i.class===cVal) &&
     (!tVal || i.type===tVal) &&
     (!fVal || i.format===fVal) &&
     (!sVal || i.title.toLowerCase().includes(sVal) || i.code.toLowerCase().includes(sVal))
   );
-  fCount.textContent = filtered.length + ' / ' + ITEMS.length + ' mục';
+  fCount.textContent = filtered.length + ' / ' + items.length + ' mục';
 
   const main = document.getElementById('main');
   main.innerHTML = '';
@@ -122,34 +181,99 @@ function render(){
     main.innerHTML = '<div class="empty">Không tìm thấy mục nào khớp bộ lọc.</div>';
     return;
   }
-  classOrder.forEach(cls=>{
-    const items = filtered.filter(i=>i.class===cls);
-    if(items.length===0) return;
+  const groupOrder = [...classOrder, ...allClasses().filter(c=>!classOrder.includes(c))];
+  groupOrder.forEach(cls=>{
+    const groupItems = filtered.filter(i=>i.class===cls);
+    if(groupItems.length===0) return;
     const group = document.createElement('div');
     group.className = 'group';
-    group.innerHTML = `<h2>${cls} <span class="tally">${items.length} mục</span></h2><hr>`;
+    group.innerHTML = `<h2>${cls} <span class="tally">${groupItems.length} mục</span></h2><hr>`;
     const grid = document.createElement('div');
     grid.className = 'grid';
-    items.forEach(i=>{
+    groupItems.forEach(i=>{
       const card = document.createElement('div');
       card.className = 'card';
       const classKey = 'b-class-' + cls.replace(/ /g,'\\ ');
+      const classOptsHtml = [...new Set([...classOrder, ...allClasses()])].map(c=>`<option value="${escAttr(c)}" ${c===i.class?'selected':''}>${c}</option>`).join('');
+      const typeOptsHtml = allTypes().map(t=>`<option value="${escAttr(t)}" ${t===i.type?'selected':''}>${t}</option>`).join('');
       card.innerHTML = `
         <div class="code">${i.code}</div>
         <div class="badges">
-          <span class="badge ${classKey}">${i.class}</span>
+          <span class="badge ${i._edited?'edited':classKey}">${i.class}${i._edited?' ✎':''}</span>
           <span class="badge b-format">${formatLabel(i.format)}</span>
         </div>
         <h3>${i.title}</h3>
         <a class="open" href="${i.link}" target="_blank" rel="noopener">Mở tài liệu →</a>
         ${i.note ? `<div class="note">${i.note}</div>` : ''}
+        <div class="card-actions">
+          <button class="edit-btn" data-code="${i.code}">✏️ Sửa phân loại</button>
+          ${i._edited ? `<button class="reset-btn" data-reset="${i.code}">↺ Đặt lại</button>` : ''}
+        </div>
+        <div class="edit-panel" id="panel-${i.code}">
+          <label>Lớp</label>
+          <select class="ep-class">${classOptsHtml}</select>
+          <input class="ep-class-new" type="text" placeholder="...hoặc gõ tên lớp mới rồi Enter">
+          <label>Loại bài</label>
+          <select class="ep-type">${typeOptsHtml}</select>
+          <input class="ep-type-new" type="text" placeholder="...hoặc gõ loại bài mới rồi Enter">
+          <div class="row">
+            <button class="save" data-save="${i.code}">Lưu</button>
+            <button class="cancel" data-cancel="${i.code}">Huỷ</button>
+          </div>
+        </div>
       `;
       grid.appendChild(card);
     });
     group.appendChild(grid);
     main.appendChild(group);
   });
+
+  main.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.getElementById('panel-'+btn.dataset.code).classList.toggle('open');
+    });
+  });
+  main.querySelectorAll('[data-cancel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.getElementById('panel-'+btn.dataset.cancel).classList.remove('open');
+    });
+  });
+  main.querySelectorAll('[data-reset]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      delete overrides[btn.dataset.reset];
+      saveOverrides(overrides);
+      render();
+    });
+  });
+  main.querySelectorAll('[data-save]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const code = btn.dataset.save;
+      const panel = document.getElementById('panel-'+code);
+      const newClass = panel.querySelector('.ep-class-new').value.trim();
+      const newType = panel.querySelector('.ep-type-new').value.trim();
+      const cls = newClass || panel.querySelector('.ep-class').value;
+      const typ = newType || panel.querySelector('.ep-type').value;
+      overrides[code] = { class: cls, type: typ };
+      saveOverrides(overrides);
+      render();
+    });
+  });
 }
+
+function updateExportPanel(){
+  const codes = Object.keys(overrides);
+  if(codes.length===0){
+    exportText.value = 'Chưa có thay đổi phân loại nào để xuất.';
+    return;
+  }
+  const lines = codes.map(code=>`${code} → lớp: "${overrides[code].class}", loại bài: "${overrides[code].type}"`);
+  exportText.value = lines.join('\n');
+}
+exportBtn.addEventListener('click', ()=>{
+  updateExportPanel();
+  exportPanel.classList.toggle('open');
+  if(exportPanel.classList.contains('open')){ exportText.select(); }
+});
 
 [fClass,fType,fFormat].forEach(el=>el.addEventListener('change', render));
 fSearch.addEventListener('input', render);

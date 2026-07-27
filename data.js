@@ -32,6 +32,7 @@ const ITEMS = [
 
 // ===== Lớp nền tảng =====
 {code:"LNT-H01", class:"Lớp nền tảng", type:"Phrasal Verb", format:"html", title:"Phrasal Verbs – Bài 1", link:"https://phamnhu021200-bot.github.io/quiz-lopnentang-phrasalverb-bai1/"},
+{code:"LNT-H02", class:"Lớp nền tảng", type:"Grammar", format:"html", title:"Question Word + To-infinitive – 100 câu", link:"https://phamnhu021200-bot.github.io/quiz-lopnentang-questionword-toinfinitive/"},
 
 // ===== IELTS =====
 {code:"IE-H01", class:"IELTS", type:"Vocabulary", format:"html", title:"Từ vựng IELTS – Bộ 1", link:"https://phamnhu021200-bot.github.io/tu-vung-ielts-1/", note:"Có bản cập nhật IE-H02, nên kiểm tra bản nào mới hơn"},

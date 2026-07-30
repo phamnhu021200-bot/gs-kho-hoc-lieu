@@ -34,6 +34,8 @@ const ITEMS = [
 {code:"LNT-H01", class:"Lớp nền tảng", type:"Phrasal Verb", format:"html", title:"Phrasal Verbs – Bài 1", link:"https://phamnhu021200-bot.github.io/quiz-lopnentang-phrasalverb-bai1/"},
 {code:"LNT-H02", class:"Lớp nền tảng", type:"Grammar", format:"html", title:"Question Word + To-infinitive – 100 câu", link:"https://phamnhu021200-bot.github.io/quiz-lopnentang-questionword-toinfinitive/"},
 {code:"LNT-D01", class:"Lớp nền tảng", type:"Word Form", format:"docx", title:"Unit 1 – Test Word Form số 2 (3 phần: từ loại, MCQ, điền dạng từ)", link:"https://drive.google.com/file/d/1ik4JfzayDmR0UnIcBiKfFwO7U2Rej4pr/view"},
+{code:"LNT-D02", class:"Lớp nền tảng", type:"Grammar", format:"docx", title:"Question Word + To-infinitive – Đề luyện tập 1 (20 MCQ + 10 viết lại câu)", link:"https://drive.google.com/file/d/11DUb2HVINFpgyRRu4r3FL-6zPn2M785Y/view"},
+{code:"LNT-D03", class:"Lớp nền tảng", type:"Grammar", format:"docx", title:"Question Word + To-infinitive – Đề luyện tập 2 (20 MCQ + 10 viết lại câu)", link:"https://drive.google.com/file/d/1WS04ryzSOkKephVeqfQPBoQ6AUD_Tl6t/view"},
 
 // ===== IELTS =====
 {code:"IE-H01", class:"IELTS", type:"Vocabulary", format:"html", title:"Từ vựng IELTS – Bộ 1", link:"https://phamnhu021200-bot.github.io/tu-vung-ielts-1/", note:"Có bản cập nhật IE-H02, nên kiểm tra bản nào mới hơn"},
